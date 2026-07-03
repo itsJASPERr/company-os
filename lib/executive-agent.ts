@@ -31,8 +31,10 @@ Return ONLY valid JSON:
     {
       "id": "TASK-1",
       "title": "",
+      "description": "",
       "file": "",
       "priority": "high|medium|low",
+      "status": "todo",
       "dependsOn": []
     }
   ]
