@@ -163,5 +163,35 @@ If uncertain:
     throw new Error("Executive Agent response missing required fields");
   }
 
+  const VALID_PRIORITIES = new Set(["high", "medium", "low"]);
+  const seenIds = new Set<string>();
+
+  for (let i = 0; i < parsed.tasks.length; i++) {
+    const task = parsed.tasks[i] as Record<string, unknown>;
+    const idx = `tasks[${i}]`;
+
+    for (const field of ["id", "title", "description", "file", "priority", "status", "dependsOn"] as const) {
+      if (!(field in task) || task[field] === undefined || task[field] === null) {
+        throw new Error(`Executive Agent task ${idx} missing required field: ${field}`);
+      }
+    }
+
+    if (!Array.isArray(task.dependsOn)) {
+      throw new Error(`Executive Agent task ${idx} field 'dependsOn' must be an array`);
+    }
+
+    const id = task.id as string;
+    if (seenIds.has(id)) {
+      throw new Error(`Executive Agent returned duplicate task id: ${id}`);
+    }
+    seenIds.add(id);
+
+    if (!VALID_PRIORITIES.has(task.priority as string)) {
+      throw new Error(
+        `Executive Agent task ${idx} has invalid priority '${task.priority}': must be high, medium, or low`
+      );
+    }
+  }
+
   return parsed;
 }
