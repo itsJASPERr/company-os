@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS plans (
+    id TEXT PRIMARY KEY,
+    goal TEXT NOT NULL,
+    why TEXT NOT NULL,
+    markdown TEXT NOT NULL,
+    dag_json TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);

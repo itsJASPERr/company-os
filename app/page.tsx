@@ -1,7 +1,6 @@
 "use client";
 
-import { generateMarkdownFromPlan } from "@/lib/renderMarkdown";
-import { PlanResponse } from "@/types/plan";
+import { CreatePlanResponse } from "@/types/dto/create-plan.response";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -14,20 +13,19 @@ type TabType = "plan" | "execution" | "debug";
 export default function Home() {
   const [tab, setTab] = useState<TabType>("plan");
   const [goalInput, setGoalInput] = useState("");
-  const [data, setData] = useState<PlanResponse | null>(null);
+  const [data, setData] = useState<CreatePlanResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const markdown = generateMarkdownFromPlan(data);
-  const tasks = data?.tasks ?? [];
+  const markdown = data?.markdown ?? "";
+  const dag = data?.dag ?? [];
 
   async function runGoal() {
     if (!goalInput) return;
     setLoading(true);
 
     try {
-      // 🚨 UPDATED ENDPOINT HERE 🚨
-      const res = await fetch("/api/plan", {
+      const res = await fetch("/api/plans", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ goal: goalInput }),
@@ -142,8 +140,8 @@ export default function Home() {
         {/* TAB: EXECUTION */}
         {tab === "execution" && (
           <div className="space-y-3">
-            {tasks.length > 0 ? (
-              tasks.map((task) => (
+            {dag.length > 0 ? (
+              dag.map((task) => (
                 <div key={task.id} className="bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-slate-700 transition-colors">
                   <div className="flex items-start justify-between gap-4 mb-2">
                     <h3 className="font-medium text-sm text-slate-200">
@@ -183,7 +181,7 @@ export default function Home() {
                 </div>
               ))
             ) : (
-              <p className="text-sm text-slate-500 italic">No tasks mapped. Generate a plan first.</p>
+              <p className="text-sm text-slate-500 italic">No DAG nodes. Generate a plan first.</p>
             )}
           </div>
         )}
