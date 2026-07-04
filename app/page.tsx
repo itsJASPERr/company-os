@@ -6,6 +6,8 @@ import remarkGfm from "remark-gfm";
 
 import { TaskDto } from "@/types/dto/task";
 import { PlanDto } from "@/types/dto/plan";
+import TabBar, { TabType } from "@/components/TabBar";
+import ExecutionList from "@/components/ExecutionList";
 
 
 function tasksToMarkdown(plan: PlanDto): string {
@@ -42,7 +44,7 @@ function tasksToMarkdown(plan: PlanDto): string {
 // -----------------------------------------------------------------------------
 export default function Home() {
   const [showHistory, setShowHistory] = useState(false);
-  const [activeTab, setActiveTab] = useState<"plan" | "json">("plan");
+  const [activeTab, setActiveTab] = useState<TabType>("plan");
   const [goalInput, setGoalInput] = useState("");
   const [currentPlan, setCurrentPlan] = useState<PlanDto | null>(null);
   const [loading, setLoading] = useState(false);
@@ -161,39 +163,13 @@ export default function Home() {
         </section>
 
         {/* Toolbar */}
-        <div className="flex items-center gap-3 mb-4">
-          <button
-            onClick={() => { setShowHistory(false); setActiveTab("plan"); }}
-            className={`text-xs font-medium py-2 px-3 rounded-xl border transition-all ${
-              !showHistory && activeTab === "plan"
-                ? "bg-slate-800 border-slate-700 text-white shadow-sm"
-                : "bg-slate-900 border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-600"
-            }`}
-          >
-            Plan
-          </button>
-          <button
-            onClick={() => { setShowHistory(false); setActiveTab("json"); }}
-            className={`text-xs font-medium py-2 px-3 rounded-xl border transition-all ${
-              !showHistory && activeTab === "json"
-                ? "bg-slate-800 border-slate-700 text-white shadow-sm"
-                : "bg-slate-900 border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-600"
-            }`}
-          >
-            JSON
-          </button>
-          <button
-            onClick={() => setShowHistory((v) => !v)}
-            className={`text-xs font-medium py-2 px-3 rounded-xl border transition-all ${
-              showHistory
-                ? "bg-slate-700 border-slate-600 text-white shadow-sm"
-                : "bg-slate-900 border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-600"
-            }`}
-          >
-            History
-          </button>
-        </div>
-
+        <TabBar
+          tab={activeTab}
+          setTab={setActiveTab}
+          showHistory={showHistory}
+          setShowHistory={setShowHistory}
+        />
+        
         {/* Content */}
         <section className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-6 min-h-[360px] backdrop-blur-sm">
 
@@ -266,6 +242,12 @@ export default function Home() {
               )}
             </div>
           )}
+
+          {/* PlanViewer — Execution List */}
+          {!showHistory && activeTab === "execution" && (
+            <ExecutionList dag={currentPlan ? currentPlan.dag : []} />
+          )}
+
         </section>
       </main>
     </div>
