@@ -39,7 +39,7 @@ function tasksToMarkdown(plan: PlanEntry): string {
     lines.push(`- **Priority:** ${task.priority}`);
     lines.push(`- **Status:** ${task.status}`);
     if (task.file) lines.push(`- **File:** \`${task.file}\``);
-    if (task.dependsOn.length) lines.push(`- **Depends on:** ${task.dependsOn.join(", ")}`);
+    if (task.dependsOn?.length) lines.push(`- **Depends on:** ${task.dependsOn.join(", ")}`);
     lines.push(``);
   }
   return lines.join("\n");
