@@ -9,7 +9,8 @@ export async function POST(req: Request) {
 
   try {
     requestData = await req.json();
-  } catch {
+  } catch (e) {
+    console.error("Create plan request parse error:", e);
     return NextResponse.json(
       { error: "Invalid JSON body" },
       { status: 400 }

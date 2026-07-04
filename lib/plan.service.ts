@@ -116,12 +116,16 @@ export class PlanService {
   }
 
   private parseGeneratedPlan(result: string | null): GeneratedPlan {
+    if (!result) {
+      throw new Error("Model returned no output");
+    }
+
     let parsed: unknown;
 
     try {
-      parsed = JSON.parse(result ?? "");
+      parsed = JSON.parse(result);
     } catch {
-      throw new Error("Model returned no output or invalid JSON");
+      throw new Error("Model returned invalid JSON");
     }
 
     if (!this.isGeneratedPlan(parsed)) {
