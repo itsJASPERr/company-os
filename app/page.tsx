@@ -4,6 +4,7 @@ import { generateMarkdownFromPlan } from "@/lib/renderMarkdown";
 import { PlanResponse } from "@/types/plan";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 type TabType = "plan" | "execution" | "debug";
 
@@ -23,7 +24,7 @@ export default function Home() {
   async function runGoal() {
     if (!goalInput) return;
     setLoading(true);
-    
+
     try {
       // 🚨 UPDATED ENDPOINT HERE 🚨
       const res = await fetch("/api/plan", {
@@ -57,7 +58,7 @@ export default function Home() {
   }
 
   return (
-    <main className="max-w-4xl mx-auto p-6 min-h-screen text-slate-100 bg-slate-950 font-sans selection:bg-indigo-500/30">
+    <main className="max-w-full p-6 min-h-screen text-slate-100 bg-slate-950 font-sans selection:bg-indigo-500/30">
       {/* Header */}
       <header className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
@@ -111,11 +112,10 @@ export default function Home() {
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`flex-1 text-xs font-medium py-2 rounded-lg capitalize transition-all ${
-              tab === t 
-                ? "bg-slate-800 text-white shadow-sm" 
-                : "text-slate-400 hover:text-slate-200"
-            }`}
+            className={`flex-1 text-xs font-medium py-2 rounded-lg capitalize transition-all ${tab === t
+              ? "bg-slate-800 text-white shadow-sm"
+              : "text-slate-400 hover:text-slate-200"
+              }`}
           >
             {t}
           </button>
@@ -124,14 +124,17 @@ export default function Home() {
 
       {/* Content Container */}
       <section className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-6 min-h-[360px] backdrop-blur-sm">
-        
+
         {/* TAB: PLAN */}
         {tab === "plan" && (
-          <article className="prose prose-invert prose-slate max-w-none prose-headings:font-semibold prose-h1:text-xl prose-h1:text-slate-200 prose-p:text-slate-300 prose-li:text-slate-300">
+          // Ensure 'prose' and 'prose-invert' are present to trigger Tailwind Typography
+          <article className="prose prose-invert max-w-none [&>h1]:text-3xl [&>h1]:font-bold [&>h2]:text-2xl [&>h2]:mt-6">
             {markdown ? (
-              <ReactMarkdown>{markdown}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {markdown}
+              </ReactMarkdown>
             ) : (
-              <p className="text-sm text-slate-500 italic">No plan generated yet. Enter a goal above.</p>
+              <p className="text-sm text-slate-500 italic">No plan generated yet.</p>
             )}
           </article>
         )}
@@ -158,7 +161,7 @@ export default function Home() {
                       </span>
                     </div>
                   </div>
-                  
+
                   {task.description && (
                     <p className="text-xs text-slate-400 mb-3 leading-relaxed">
                       {task.description}
@@ -168,7 +171,7 @@ export default function Home() {
                   <div className="text-xs text-slate-400 font-mono bg-slate-950/60 inline-block px-2 py-1 rounded border border-slate-800/50">
                     {task.file}
                   </div>
-                  
+
                   {task.dependsOn.length > 0 && (
                     <div className="mt-3 pt-2.5 border-t border-slate-800/60 text-[11px] text-slate-500">
                       <span className="text-slate-400 font-medium">Requires:</span>{" "}
