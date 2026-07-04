@@ -19,6 +19,7 @@ export default function Home() {
   const [copied, setCopied] = useState(false);
   const [history, setHistory] = useState<ListPlansResponse>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
 
   useEffect(() => {
     if (tab !== "history") return;
@@ -27,6 +28,7 @@ export default function Home() {
 
     async function fetchHistory() {
       setHistoryLoading(true);
+      setHistoryError(null);
       try {
         const res = await fetch("/api/plans");
         if (!res.ok) throw new Error(`Server returned ${res.status}`);
@@ -34,6 +36,7 @@ export default function Home() {
         if (!cancelled) setHistory(json);
       } catch (error) {
         console.error("History fetch error:", error);
+        if (!cancelled) setHistoryError("Failed to load history. Please try again.");
       } finally {
         if (!cancelled) setHistoryLoading(false);
       }
@@ -230,6 +233,8 @@ export default function Home() {
           <div className="space-y-2">
             {historyLoading ? (
               <p className="text-sm text-slate-500 italic">Loading history...</p>
+            ) : historyError ? (
+              <p className="text-sm text-red-400">{historyError}</p>
             ) : history.length === 0 ? (
               <p className="text-sm text-slate-500 italic">No plans in history yet.</p>
             ) : (
