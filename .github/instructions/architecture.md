@@ -19,7 +19,7 @@ The current planner already follows the first three layers, and future persisted
 ## Layered architecture
 
 ### UI
-**Current examples:** `app/page.tsx`
+**Current examples:** `app/page.tsx`, `lib/renderMarkdown.ts`
 
 Responsibilities:
 - Render the App Router page and client interactions
@@ -32,6 +32,7 @@ Rules:
 - UI must not contain business rules
 - UI must not contain SQL
 - UI may format Domain Model data into Markdown for display
+- Current planner rendering is driven by `types/plan.ts`
 
 ### API
 **Current examples:** `app/api/plan/route.ts`
@@ -48,11 +49,11 @@ Rules:
 - API must not contain SQL
 
 ### Service
-**Current examples:** `lib/executive-agent.ts`, `lib/renderMarkdown.ts`
+**Current examples:** `lib/executive-agent.ts`
 
 Responsibilities:
 - Hold business logic and orchestration
-- Define and use Domain Models as the source of truth
+- Define and use Domain Models as the source of truth (`types/plan.ts`)
 - Produce the planner's dual-layer output contract
 
 Rules:
