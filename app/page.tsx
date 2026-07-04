@@ -3,7 +3,17 @@
 import { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { PlanRecord } from "@/lib/plan.service";
+
+type PlanEntry = {
+  id: string;
+  goal_id: string;
+  goal: string;
+  why: string;
+  markdown: string;
+  dag: unknown[];
+  status: string;
+  created_at: string;
+};
 
 // -----------------------------------------------------------------------------
 // Main Component
@@ -12,9 +22,9 @@ export default function Home() {
   const [showHistory, setShowHistory] = useState(false);
   const [activeTab, setActiveTab] = useState<"plan" | "json">("plan");
   const [goalInput, setGoalInput] = useState("");
-  const [currentPlan, setCurrentPlan] = useState<PlanRecord | null>(null);
+  const [currentPlan, setCurrentPlan] = useState<PlanEntry | null>(null);
   const [loading, setLoading] = useState(false);
-  const [history, setHistory] = useState<PlanRecord[]>([]);
+  const [history, setHistory] = useState<PlanEntry[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
 
@@ -27,7 +37,7 @@ export default function Home() {
       try {
         const res = await fetch("/api/plans");
         if (!res.ok) throw new Error(`Server returned ${res.status}`);
-        const json: PlanRecord[] = await res.json();
+        const json: PlanEntry[] = await res.json();
         if (!cancelled) setHistory(json);
       } catch (error) {
         console.error("History fetch error:", error);
@@ -61,17 +71,18 @@ export default function Home() {
         );
       }
 
-      const plan: PlanRecord = await res.json();
-      setCurrentPlan(plan);
+      await res.json(); // consume { plan: string } response
+
+      // Refresh history and source currentPlan from backend (persisted record)
+      const histRes = await fetch("/api/plans");
+      if (histRes.ok) {
+        const histJson: PlanEntry[] = await histRes.json();
+        setHistory(histJson);
+        if (histJson.length > 0) setCurrentPlan(histJson[0]);
+      }
       setShowHistory(false);
       setActiveTab("plan");
 
-      // Refresh history so the new plan appears
-      const histRes = await fetch("/api/plans");
-      if (histRes.ok) {
-        const histJson: PlanRecord[] = await histRes.json();
-        setHistory(histJson);
-      }
     } catch (error) {
       console.error("Execution Error:", error);
       alert(
@@ -86,7 +97,7 @@ export default function Home() {
     try {
       const res = await fetch(`/api/plans/${id}`);
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
-      const plan: PlanRecord = await res.json();
+      const plan: PlanEntry = await res.json();
       setCurrentPlan(plan);
       setShowHistory(false);
       setActiveTab("plan");
