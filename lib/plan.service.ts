@@ -121,7 +121,7 @@ export class PlanService {
     try {
       parsed = JSON.parse(result ?? "");
     } catch {
-      throw new Error("Invalid model output JSON");
+      throw new Error("Model returned no output or invalid JSON");
     }
 
     if (!this.isGeneratedPlan(parsed)) {
