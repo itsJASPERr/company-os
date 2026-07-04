@@ -1,12 +1,45 @@
-// lib/plan.service.ts
-
 import crypto from "node:crypto";
 import db from "@/lib/db";
-
+import { generatePlan } from "@/lib/executive-agent";
+import { generateMarkdownFromPlan } from "@/lib/renderMarkdown";
 import { Plan } from "@/types/domain/plan";
 
+type PlanRow = {
+  id: string;
+  goal: string;
+  why: string;
+  markdown: string;
+  dag_json: string;
+  created_at: string;
+  updated_at: string;
+};
+
+type GeneratedPlan = {
+  goal: string;
+  why: string;
+  tasks: Plan["dag"];
+};
+
 export class PlanService {
-  createPlan(plan: Omit<Plan, "id" | "createdAt">): Plan {
+  async generateAndCreatePlan(goal: string): Promise<Plan> {
+    const result = await generatePlan(goal);
+
+    const generatedPlan = this.parseGeneratedPlan(result);
+    const markdown = generateMarkdownFromPlan({
+      goal: generatedPlan.goal,
+      why: generatedPlan.why,
+      dag: generatedPlan.tasks,
+    });
+
+    return this.createPlan({
+      goal: generatedPlan.goal,
+      why: generatedPlan.why,
+      markdown,
+      dag: generatedPlan.tasks,
+    });
+  }
+
+  createPlan(plan: Omit<Plan, "id" | "createdAt" | "updatedAt">): Plan {
     const id = crypto.randomUUID();
     const createdAt = new Date().toISOString();
 
@@ -37,6 +70,7 @@ export class PlanService {
       id,
       ...plan,
       createdAt,
+      updatedAt: createdAt,
     };
   }
 
@@ -49,7 +83,7 @@ export class PlanService {
         WHERE id = ?
         `
       )
-      .get(id);
+      .get(id) as PlanRow | undefined;
 
     if (!row) {
       return null;
@@ -67,7 +101,7 @@ export class PlanService {
         ORDER BY created_at DESC
         `
       )
-      .all();
+      .all() as PlanRow[];
 
     return rows.map((row) => this.mapRow(row));
   }
@@ -81,7 +115,37 @@ export class PlanService {
     ).run(id);
   }
 
-  private mapRow(row: any): Plan {
+  private parseGeneratedPlan(result: string | null): GeneratedPlan {
+    let parsed: unknown;
+
+    try {
+      parsed = JSON.parse(result ?? "");
+    } catch {
+      throw new Error("Invalid model output JSON");
+    }
+
+    if (!this.isGeneratedPlan(parsed)) {
+      throw new Error("Invalid model output structure");
+    }
+
+    return parsed;
+  }
+
+  private isGeneratedPlan(value: unknown): value is GeneratedPlan {
+    if (!value || typeof value !== "object") {
+      return false;
+    }
+
+    const plan = value as Partial<GeneratedPlan>;
+
+    return (
+      typeof plan.goal === "string" &&
+      typeof plan.why === "string" &&
+      Array.isArray(plan.tasks)
+    );
+  }
+
+  private mapRow(row: PlanRow): Plan {
     return {
       id: row.id,
       goal: row.goal,

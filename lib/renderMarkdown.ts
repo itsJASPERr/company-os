@@ -1,7 +1,8 @@
-// lib/renderMarkdown.ts
-import { CreatePlanResponse } from "@/types/dto/create-plan.response";
+import { Plan } from "@/types/domain/plan";
 
-export function generateMarkdownFromPlan(plan: CreatePlanResponse | null): string {
+type MarkdownPlan = Pick<Plan, "goal" | "why" | "dag">;
+
+export function generateMarkdownFromPlan(plan: MarkdownPlan | null): string {
     if (!plan) return "# No plan available";
 
     const { goal, why, dag } = plan;

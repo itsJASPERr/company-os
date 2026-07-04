@@ -1,6 +1,5 @@
 "use client";
 
-import { generateMarkdownFromPlan } from "@/lib/renderMarkdown";
 import { CreatePlanResponse } from "@/types/dto/create-plan.response";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
@@ -18,7 +17,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const markdown = generateMarkdownFromPlan(data);
+  const markdown = data?.markdown ?? "";
   const dag = data?.dag ?? [];
 
   async function runGoal() {
@@ -26,8 +25,7 @@ export default function Home() {
     setLoading(true);
 
     try {
-      // 🚨 UPDATED ENDPOINT HERE 🚨
-      const res = await fetch("/api/plan", {
+      const res = await fetch("/api/plans", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ goal: goalInput }),
