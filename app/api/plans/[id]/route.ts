@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { planService } from "@/lib/plan.service";
 import { GetPlanResponse } from "@/types/dto/get-plan.response";
+import { UpdatePlanRequest } from "@/types/dto/plan";
 
 interface Params {
   id: string;
 }
 
 export async function GET(
-  req: Request,
+  _req: Request,
   { params }: { params: Params }
 ) {
   try {
@@ -49,8 +50,51 @@ export async function GET(
   }
 }
 
-export async function DELETE(
+export async function PATCH(
   req: Request,
+  { params }: { params: Params }
+) {
+  try {
+    const { id } = params;
+
+    if (!id || typeof id !== "string") {
+      return NextResponse.json(
+        { error: "Invalid plan ID" },
+        { status: 400 }
+      );
+    }
+
+    let body: UpdatePlanRequest;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid JSON body" },
+        { status: 400 }
+      );
+    }
+
+    const updated = planService.updatePlan(id, body);
+
+    if (!updated) {
+      return NextResponse.json(
+        { error: "Plan not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(updated, { status: 200 });
+  } catch (e) {
+    console.error("Update plan error:", e);
+    return NextResponse.json(
+      { error: "Failed to update plan", details: e instanceof Error ? e.message : "Unknown error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  _req: Request,
   { params }: { params: Params }
 ) {
   try {

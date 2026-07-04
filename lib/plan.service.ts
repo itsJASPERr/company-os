@@ -106,6 +106,37 @@ export class PlanService {
     return rows.map((row) => this.mapRow(row));
   }
 
+  updatePlan(
+    id: string,
+    updates: Partial<Pick<Plan, "goal" | "why" | "markdown" | "dag">>
+  ): Plan | null {
+    const existing = this.getPlan(id);
+    if (!existing) {
+      return null;
+    }
+
+    const updatedAt = new Date().toISOString();
+    // Merge all fields before persisting so the UPDATE always writes a complete record.
+    const updated = { ...existing, ...updates, updatedAt };
+
+    db.prepare(
+      `
+      UPDATE plans
+      SET goal = ?, why = ?, markdown = ?, dag_json = ?, updated_at = ?
+      WHERE id = ?
+      `
+    ).run(
+      updated.goal,
+      updated.why,
+      updated.markdown,
+      JSON.stringify(updated.dag),
+      updatedAt,
+      id
+    );
+
+    return updated;
+  }
+
   deletePlan(id: string): void {
     db.prepare(
       `
@@ -142,20 +173,40 @@ export class PlanService {
 
     const plan = value as Partial<GeneratedPlan>;
 
-    return (
-      typeof plan.goal === "string" &&
-      typeof plan.why === "string" &&
-      Array.isArray(plan.tasks)
+    if (
+      typeof plan.goal !== "string" ||
+      typeof plan.why !== "string" ||
+      !Array.isArray(plan.tasks)
+    ) {
+      return false;
+    }
+
+    return plan.tasks.every(
+      (task) =>
+        task !== null &&
+        typeof task === "object" &&
+        typeof task.id === "string" &&
+        typeof task.title === "string" &&
+        typeof task.file === "string" &&
+        (task.priority === "high" ||
+          task.priority === "medium" ||
+          task.priority === "low")
     );
   }
 
   private mapRow(row: PlanRow): Plan {
+    let dag: Plan["dag"];
+    try {
+      dag = JSON.parse(row.dag_json);
+    } catch {
+      throw new Error(`Corrupted DAG data for plan ${row.id}`);
+    }
     return {
       id: row.id,
       goal: row.goal,
       why: row.why,
       markdown: row.markdown,
-      dag: JSON.parse(row.dag_json),
+      dag,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };

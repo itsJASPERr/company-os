@@ -1,3 +1,1 @@
-export type CreatePlanRequest = {
-    goal: string;
-};
+export type { CreatePlanRequest } from "./plan";
