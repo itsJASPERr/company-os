@@ -91,6 +91,7 @@ export default function Home() {
       const json: CreatePlanResponse = await res.json();
       setData(json);
       setTab("plan");
+      setShowHistory(false);
     } catch (error) {
       console.error("Load plan error:", error);
       alert(error instanceof Error ? error.message : "Failed to load plan.");
@@ -192,7 +193,7 @@ export default function Home() {
                 history.map((plan) => (
                   <button
                     key={plan.id}
-                    onClick={() => { loadPlanFromHistory(plan.id); setShowHistory(false); }}
+                    onClick={() => loadPlanFromHistory(plan.id)}
                     className={`w-full text-left rounded-lg px-3 py-2.5 transition-colors hover:bg-slate-800 ${data?.id === plan.id ? "bg-slate-800 ring-1 ring-indigo-500/40" : ""}`}
                   >
                     <p className="text-xs font-medium text-slate-200 line-clamp-2 leading-snug">{plan.goal}</p>
