@@ -40,7 +40,7 @@ export async function POST(req: Request) {
   } catch (e) {
     console.error("Plan generation error:", e);
     return NextResponse.json(
-      { error: "Failed to generate plan", details: e instanceof Error ? e.message : "Unknown error" },
+      { error: "Failed to generate plan" },
       { status: 500 }
     );
   }
@@ -64,7 +64,7 @@ export async function GET() {
   } catch (e) {
     console.error("List plans error:", e);
     return NextResponse.json(
-      { error: "Failed to list plans", details: e instanceof Error ? e.message : "Unknown error" },
+      { error: "Failed to list plans" },
       { status: 500 }
     );
   }
