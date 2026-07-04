@@ -8,7 +8,6 @@ export type CreatePlanRequest = {
 export type UpdatePlanRequest = {
     goal?: string;
     why?: string;
-    markdown?: string;
     dag?: TaskDto[];
 };
 
@@ -16,7 +15,6 @@ export type PlanDto = {
     id: string;
     goal: string;
     why: string;
-    markdown: string;
     dag: TaskDto[];
     createdAt: string;
     updatedAt: string;
@@ -32,6 +30,8 @@ export type PlanResponse = {
 export type CreatePlanResponse = PlanDto;
 
 export type GetPlanResponse = PlanDto;
+
+export type GetPlanRequestParams = Pick<PlanDto, "id">;
 
 export type ListPlansResponse = PlanDto[];
 
