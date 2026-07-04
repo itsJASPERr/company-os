@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { planService } from "@/lib/plan.service";
+import { PlanDto } from "@/types/dto";
+import { toDto } from "@/lib/api/plan.mapper";
 
-export async function POST(req: Request) {
+type ResponseBody = { plan: PlanDto } | { error: string };
+
+export async function POST(req: Request): Promise<NextResponse<ResponseBody>> {
   let body: { goal?: unknown };
 
   try {
@@ -19,7 +23,7 @@ export async function POST(req: Request) {
 
   try {
     const plan = await planService.generateAndSave(body.goal);
-    return NextResponse.json({ plan }, { status: 201 });
+    return NextResponse.json({ plan: toDto(plan) }, { status: 201 });
   } catch (e) {
     console.error("Plan generation error:", e);
     return NextResponse.json(

@@ -31,6 +31,8 @@ export type CreatePlanResponse = PlanDto;
 
 export type GetPlanResponse = PlanDto;
 
+export type GetPlanRequestParams = Pick<PlanDto, "id">;
+
 export type ListPlansResponse = PlanDto[];
 
 export type DeletePlanResponse = {

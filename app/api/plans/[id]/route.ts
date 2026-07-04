@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
 import { planService } from "@/lib/plan.service";
+import { GetPlanRequestParams, GetPlanResponse } from "@/types/dto";
+import { Plan } from "@/types/domain/plan";
+import { toDto } from "@/lib/api/plan.mapper";
 
-interface Params {
-  id: string;
-}
+type ResponseBody = GetPlanResponse | { error: string; details?: string };
 
 export async function GET(
   _req: Request,
-  { params }: { params: Promise<Params> }
-) {
+  { params }: { params: Promise<GetPlanRequestParams> }
+): Promise<NextResponse<ResponseBody>> {
   try {
     const { id } = await params;
 
@@ -16,13 +17,13 @@ export async function GET(
       return NextResponse.json({ error: "Invalid plan ID" }, { status: 400 });
     }
 
-    const plan = planService.getPlan(id);
+    const plan: Plan | null = await planService.getPlan(id);
 
     if (!plan) {
       return NextResponse.json({ error: "Plan not found" }, { status: 404 });
     }
 
-    return NextResponse.json(plan, { status: 200 });
+    return NextResponse.json(toDto(plan), { status: 200 });
   } catch (e) {
     console.error("Get plan error:", e);
     return NextResponse.json(

@@ -5,18 +5,10 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 import { TaskDto } from "@/types/dto/task";
+import { PlanDto } from "@/types/dto/plan";
 
-type PlanEntry = {
-  id: string;
-  goal_id: string;
-  goal: string;
-  why: string;
-  dag: TaskDto[];
-  status: string;
-  created_at: string;
-};
 
-function tasksToMarkdown(plan: PlanEntry): string {
+function tasksToMarkdown(plan: PlanDto): string {
   const lines: string[] = [
     `# Goal`,
     ``,
@@ -52,9 +44,9 @@ export default function Home() {
   const [showHistory, setShowHistory] = useState(false);
   const [activeTab, setActiveTab] = useState<"plan" | "json">("plan");
   const [goalInput, setGoalInput] = useState("");
-  const [currentPlan, setCurrentPlan] = useState<PlanEntry | null>(null);
+  const [currentPlan, setCurrentPlan] = useState<PlanDto | null>(null);
   const [loading, setLoading] = useState(false);
-  const [history, setHistory] = useState<PlanEntry[]>([]);
+  const [history, setHistory] = useState<PlanDto[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
 
@@ -67,7 +59,7 @@ export default function Home() {
       try {
         const res = await fetch("/api/plans");
         if (!res.ok) throw new Error(`Server returned ${res.status}`);
-        const json: PlanEntry[] = await res.json();
+        const json: PlanDto[] = await res.json();
         if (!cancelled) setHistory(json);
       } catch (error) {
         console.error("History fetch error:", error);
@@ -106,7 +98,7 @@ export default function Home() {
       // Refresh history and source currentPlan from backend (persisted record)
       const histRes = await fetch("/api/plans");
       if (histRes.ok) {
-        const histJson: PlanEntry[] = await histRes.json();
+        const histJson: PlanDto[] = await histRes.json();
         setHistory(histJson);
         if (histJson.length > 0) setCurrentPlan(histJson[0]);
       }
@@ -127,7 +119,7 @@ export default function Home() {
     try {
       const res = await fetch(`/api/plans/${id}`);
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
-      const plan: PlanEntry = await res.json();
+      const plan: PlanDto = await res.json();
       setCurrentPlan(plan);
       setShowHistory(false);
       setActiveTab("plan");
@@ -233,7 +225,7 @@ export default function Home() {
                       {plan.goal}
                     </p>
                     <p className="text-[10px] text-slate-500 mt-1">
-                      {new Date(plan.created_at).toLocaleString()}
+                      {new Date(plan.createdAt).toLocaleString()}
                     </p>
                   </button>
                 ))

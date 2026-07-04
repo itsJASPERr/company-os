@@ -2,9 +2,12 @@ import crypto from "node:crypto";
 import db from "@/lib/db";
 import { generatePlan } from "@/lib/executive-agent";
 import { TaskDto } from "@/types/dto/task";
+import { Plan } from "@/types/domain/plan";
+import { IPlanService } from "./plan.service.interface";
 
 const PLAN_STATUS_ACTIVE = "active";
 
+// persistence layer type, DAO
 export type PlanRecord = {
   id: string;
   goal_id: string;
@@ -32,8 +35,19 @@ function rowToRecord(row: PlanRow): PlanRecord {
   };
 }
 
-export class PlanService {
-  async generateAndSave(goal: string): Promise<PlanRecord> {
+function recordToDomain(record: PlanRecord): Plan {
+  return {
+    id: record.id,
+    goal: record.goal,
+    why: record.why,
+    dag: record.dag,
+    createdAt: record.created_at,
+    updatedAt: record.created_at, // Assuming no separate updated_at field in the database
+  };
+}
+
+export class PlanService implements IPlanService {
+  async generateAndSave(goal: string): Promise<Plan> {
     const output = await generatePlan(goal);
 
     const goalId = crypto.randomUUID();
@@ -65,16 +79,15 @@ export class PlanService {
 
     return {
       id: planId,
-      goal_id: goalId,
       goal: output.goal,
       why: output.why,
       dag: output.tasks,
-      status: PLAN_STATUS_ACTIVE,
-      created_at: now,
+      createdAt: now,
+      updatedAt: now,
     };
   }
 
-  listPlans(): PlanRecord[] {
+  async listPlans(): Promise<Plan[]> {
     const rows = db
       .prepare(
         `SELECT p.id, p.goal_id, g.title AS goal, p.why, p.dag, p.status, p.created_at
@@ -83,10 +96,10 @@ export class PlanService {
          ORDER BY p.created_at DESC`
       )
       .all() as PlanRow[];
-    return rows.map(rowToRecord);
+    return rows.map(rowToRecord).map(recordToDomain);
   }
 
-  getPlan(id: string): PlanRecord | null {
+  async getPlan(id: string): Promise<Plan | null> {
     const row = db
       .prepare(
         `SELECT p.id, p.goal_id, g.title AS goal, p.why, p.dag, p.status, p.created_at
@@ -95,8 +108,8 @@ export class PlanService {
          WHERE p.id = ?`
       )
       .get(id) as PlanRow | null;
-    return row ? rowToRecord(row) : null;
+    return row ? recordToDomain(rowToRecord(row)) : null;
   }
 }
 
-export const planService = new PlanService();
+export const planService: IPlanService = new PlanService();
