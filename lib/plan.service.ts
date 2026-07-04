@@ -47,12 +47,11 @@ export class PlanService {
         ).run(goalId, goal, now);
 
         db.prepare(
-          "INSERT INTO plans (id, goal_id, why, markdown, dag, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+          "INSERT INTO plans (id, goal_id, why, dag, status, created_at) VALUES (?, ?, ?, ?, ?, ?)"
         ).run(
           planId,
           goalId,
           output.why,
-          "",
           JSON.stringify(output.tasks),
           PLAN_STATUS_ACTIVE,
           now

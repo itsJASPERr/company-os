@@ -19,7 +19,7 @@ export async function POST(req: Request) {
 
   try {
     const plan = await planService.generateAndSave(body.goal);
-    return NextResponse.json({ plan: plan.markdown }, { status: 201 });
+    return NextResponse.json({ plan }, { status: 201 });
   } catch (e) {
     console.error("Plan generation error:", e);
     return NextResponse.json(
