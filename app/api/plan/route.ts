@@ -1,11 +1,25 @@
+import { NextResponse } from "next/server";
 import { generatePlan } from "@/lib/executive-agent";
 
 export async function POST(req: Request) {
-  const body = await req.json();
+  const { goal } = await req.json();
 
-  const goal = body.goal;
+  if (!goal) {
+    return NextResponse.json(
+      { error: "Missing goal" },
+      { status: 400 }
+    );
+  }
 
-  const plan = await generatePlan(goal);
+  const result = await generatePlan(goal);
 
-  return Response.json({ plan });
+  try {
+    const parsed = JSON.parse(result || "");
+    return NextResponse.json(parsed);
+  } catch (e) {
+    return NextResponse.json(
+      { error: "Invalid model output", raw: result },
+      { status: 500 }
+    );
+  }
 }
