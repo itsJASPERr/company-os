@@ -19,15 +19,21 @@ export class PlanService {
     const planId = crypto.randomUUID();
     const now = new Date().toISOString();
 
-    db.transaction(() => {
-      db.prepare(
-        "INSERT INTO goals (id, title, created_at) VALUES (?, ?, ?)"
-      ).run(goalId, goal, now);
+    try {
+      db.transaction(() => {
+        db.prepare(
+          "INSERT INTO goals (id, title, created_at) VALUES (?, ?, ?)"
+        ).run(goalId, goal, now);
 
-      db.prepare(
-        "INSERT INTO plans (id, goal_id, markdown, status, created_at) VALUES (?, ?, ?, ?, ?)"
-      ).run(planId, goalId, markdown, "active", now);
-    })();
+        db.prepare(
+          "INSERT INTO plans (id, goal_id, markdown, status, created_at) VALUES (?, ?, ?, ?, ?)"
+        ).run(planId, goalId, markdown, "active", now);
+      })();
+    } catch (e) {
+      throw new Error(
+        `Failed to persist goal and plan: ${e instanceof Error ? e.message : String(e)}`
+      );
+    }
 
     return markdown;
   }
