@@ -10,9 +10,9 @@ import { PlanRecord } from "@/lib/plan.service";
 // -----------------------------------------------------------------------------
 export default function Home() {
   const [showHistory, setShowHistory] = useState(false);
+  const [activeTab, setActiveTab] = useState<"plan" | "json">("plan");
   const [goalInput, setGoalInput] = useState("");
-  const [markdown, setMarkdown] = useState<string>("");
-  const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
+  const [currentPlan, setCurrentPlan] = useState<PlanRecord | null>(null);
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<PlanRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -61,17 +61,16 @@ export default function Home() {
         );
       }
 
-      const json: { plan: string } = await res.json();
-      setMarkdown(json.plan);
-      setCurrentPlanId(null);
+      const plan: PlanRecord = await res.json();
+      setCurrentPlan(plan);
       setShowHistory(false);
+      setActiveTab("plan");
 
       // Refresh history so the new plan appears
       const histRes = await fetch("/api/plans");
       if (histRes.ok) {
         const histJson: PlanRecord[] = await histRes.json();
         setHistory(histJson);
-        if (histJson.length > 0) setCurrentPlanId(histJson[0].id);
       }
     } catch (error) {
       console.error("Execution Error:", error);
@@ -87,10 +86,10 @@ export default function Home() {
     try {
       const res = await fetch(`/api/plans/${id}`);
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
-      const json: PlanRecord = await res.json();
-      setMarkdown(json.markdown);
-      setCurrentPlanId(json.id);
+      const plan: PlanRecord = await res.json();
+      setCurrentPlan(plan);
       setShowHistory(false);
+      setActiveTab("plan");
     } catch (error) {
       console.error("Load plan error:", error);
       alert(
@@ -131,14 +130,24 @@ export default function Home() {
         {/* Toolbar */}
         <div className="flex items-center gap-3 mb-4">
           <button
-            onClick={() => setShowHistory(false)}
+            onClick={() => { setShowHistory(false); setActiveTab("plan"); }}
             className={`text-xs font-medium py-2 px-3 rounded-xl border transition-all ${
-              !showHistory
+              !showHistory && activeTab === "plan"
                 ? "bg-slate-800 border-slate-700 text-white shadow-sm"
                 : "bg-slate-900 border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-600"
             }`}
           >
             Plan
+          </button>
+          <button
+            onClick={() => { setShowHistory(false); setActiveTab("json"); }}
+            className={`text-xs font-medium py-2 px-3 rounded-xl border transition-all ${
+              !showHistory && activeTab === "json"
+                ? "bg-slate-800 border-slate-700 text-white shadow-sm"
+                : "bg-slate-900 border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-600"
+            }`}
+          >
+            JSON
           </button>
           <button
             onClick={() => setShowHistory((v) => !v)}
@@ -174,7 +183,7 @@ export default function Home() {
                     key={plan.id}
                     onClick={() => loadPlanFromHistory(plan.id)}
                     className={`w-full text-left rounded-lg px-3 py-2.5 transition-colors hover:bg-slate-800 ${
-                      currentPlanId === plan.id
+                      currentPlan?.id === plan.id
                         ? "bg-slate-800 ring-1 ring-indigo-500/40"
                         : ""
                     }`}
@@ -191,12 +200,12 @@ export default function Home() {
             </div>
           )}
 
-          {/* PlanViewer */}
-          {!showHistory && (
+          {/* PlanViewer — Markdown */}
+          {!showHistory && activeTab === "plan" && (
             <article className="prose prose-invert max-w-none [&>h1]:text-3xl [&>h1]:font-bold [&>h2]:text-2xl [&>h2]:mt-6">
-              {markdown ? (
+              {currentPlan ? (
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {markdown}
+                  {currentPlan.markdown}
                 </ReactMarkdown>
               ) : (
                 <p className="text-sm text-slate-500 italic">
@@ -204,6 +213,25 @@ export default function Home() {
                 </p>
               )}
             </article>
+          )}
+
+          {/* PlanViewer — JSON */}
+          {!showHistory && activeTab === "json" && (
+            <div>
+              {currentPlan ? (
+                <pre className="text-xs text-slate-300 bg-slate-950/60 rounded-xl p-4 overflow-auto max-h-[600px] whitespace-pre-wrap break-words">
+                  {JSON.stringify(
+                    { goal: currentPlan.goal, why: currentPlan.why, tasks: currentPlan.dag },
+                    null,
+                    2
+                  )}
+                </pre>
+              ) : (
+                <p className="text-sm text-slate-500 italic">
+                  No plan generated yet.
+                </p>
+              )}
+            </div>
           )}
         </section>
       </main>
