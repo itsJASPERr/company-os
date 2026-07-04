@@ -1,5 +1,12 @@
 # Architecture
 
+## Company OS Engineering Principles
+- Working software over perfect software.
+- Simplicity over cleverness.
+- Domain first.
+- One source of truth.
+- Deterministic behavior over implicit behavior.
+
 ## Purpose
 Company OS is a Next.js App Router application for turning a user goal into a planner output with two views generated from one source of truth:
 
@@ -8,13 +15,29 @@ Company OS is a Next.js App Router application for turning a user goal into a pl
 
 Today, the planner flow is:
 
-UI → API → Service
+UI
+↓
+API
+↓
+Application Services
+ ├── Planner
+ └── PlanService
 
 The repository standard keeps the full stack organized as:
 
-UI → API → Service → Database → SQLite
+UI
+↓
+API
+↓
+Application Services
+ ├── Planner
+ └── PlanService
+↓
+Database
+↓
+SQLite
 
-The current planner already follows the first three layers, and future persisted features should extend the same direction without reversing dependencies.
+The planner is a core component. Planning logic belongs in the Planner, not in PlanService. PlanService coordinates application behavior around the execution plan and future persistence work without becoming the planner itself.
 
 ## Layered architecture
 
@@ -25,14 +48,13 @@ Responsibilities:
 - Render the App Router page and client interactions
 - Collect user input and call HTTP endpoints
 - Render planner output for humans
-- Treat Domain Models as the source of truth for display state
+- Render the Domain Model
 
 Rules:
 - Follow Next.js App Router conventions under `app/`
 - UI must not contain business rules
 - UI must not contain SQL
-- UI may format Domain Model data into Markdown for display
-- Current planner rendering is driven by `types/plan.ts`
+- UI may format the Domain Model into Markdown for display
 
 ### API
 **Current examples:** `app/api/plan/route.ts`
@@ -40,7 +62,7 @@ Rules:
 Responsibilities:
 - Expose HTTP request and response handling only
 - Validate request shape and return HTTP status codes
-- Call services and translate results to HTTP responses
+- Call Application Services and translate results to HTTP responses
 
 Rules:
 - API contains HTTP only
@@ -48,17 +70,23 @@ Rules:
 - API must not contain business logic
 - API must not contain SQL
 
-### Service
+### Application Services
 **Current examples:** `lib/executive-agent.ts`
 
 Responsibilities:
 - Hold business logic and orchestration
-- Define and use Domain Models as the source of truth (`types/plan.ts`)
+- Planner generates the execution plan
+- PlanService coordinates application behavior around the execution plan
+- Define and use Domain Models as the source of truth
 - Produce the planner's dual-layer output contract
 
 Rules:
-- Services contain business logic
-- SQL belongs in services
+- Application Services contain business logic
+- Services own persistence operations
+- Database exposes the connection
+- SQL used to implement persistence belongs in services
+- Markdown and DAG are two views of the same execution plan
+- Neither representation may become an independent source of truth
 - Markdown and DAG must be generated from the same Domain Model
 - Planner output is dual-layer:
   - human-readable Markdown
@@ -82,7 +110,7 @@ Rules:
 
 Responsibilities:
 - Persist application data when features require storage
-- Remain behind the Database and Service layers
+- Remain behind the Database and Application Services layers
 
 Rules:
 - SQLite is an implementation detail behind the Database layer
@@ -97,9 +125,9 @@ Rules:
 ## Dependency direction
 Allowed direction only:
 
-UI → API → Service → Database → SQLite
+UI → API → Application Services → Database → SQLite
 
 Do not reverse dependencies. In particular:
 - API should not be imported into UI business logic
-- Services should not depend on API DTOs
+- Application Services should not depend on API DTOs
 - Database should not contain SQL policy or business rules
