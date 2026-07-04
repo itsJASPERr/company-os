@@ -1,11 +1,12 @@
 "use client";
 
 import { CreatePlanResponse } from "@/types/dto/create-plan.response";
-import { useState } from "react";
+import { ListPlansResponse } from "@/types/dto/list-plans.response";
+import { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-type TabType = "plan" | "execution" | "debug";
+type TabType = "plan" | "execution" | "history" | "debug";
 
 // -----------------------------------------------------------------------------
 // Main Component
@@ -16,6 +17,31 @@ export default function Home() {
   const [data, setData] = useState<CreatePlanResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [history, setHistory] = useState<ListPlansResponse>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  useEffect(() => {
+    if (tab !== "history") return;
+
+    let cancelled = false;
+
+    async function fetchHistory() {
+      setHistoryLoading(true);
+      try {
+        const res = await fetch("/api/plans");
+        if (!res.ok) throw new Error(`Server returned ${res.status}`);
+        const json = await res.json();
+        if (!cancelled) setHistory(json);
+      } catch (error) {
+        console.error("History fetch error:", error);
+      } finally {
+        if (!cancelled) setHistoryLoading(false);
+      }
+    }
+
+    fetchHistory();
+    return () => { cancelled = true; };
+  }, [tab]);
 
   const markdown = data?.markdown ?? "";
   const dag = data?.dag ?? [];
@@ -53,6 +79,19 @@ export default function Home() {
     navigator.clipboard.writeText(JSON.stringify(data, null, 2));
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
+  }
+
+  async function loadPlanFromHistory(id: string) {
+    try {
+      const res = await fetch(`/api/plans/${id}`);
+      if (!res.ok) throw new Error(`Server returned ${res.status}`);
+      const json: CreatePlanResponse = await res.json();
+      setData(json);
+      setTab("plan");
+    } catch (error) {
+      console.error("Load plan error:", error);
+      alert(error instanceof Error ? error.message : "Failed to load plan.");
+    }
   }
 
   return (
@@ -105,8 +144,8 @@ export default function Home() {
       </section>
 
       {/* Tabs */}
-      <nav className="flex gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 mb-4 max-w-xs">
-        {(["plan", "execution", "debug"] as TabType[]).map((t) => (
+      <nav className="flex gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 mb-4 max-w-sm">
+        {(["plan", "execution", "history", "debug"] as TabType[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -182,6 +221,28 @@ export default function Home() {
               ))
             ) : (
               <p className="text-sm text-slate-500 italic">No DAG nodes. Generate a plan first.</p>
+            )}
+          </div>
+        )}
+
+        {/* TAB: HISTORY */}
+        {tab === "history" && (
+          <div className="space-y-2">
+            {historyLoading ? (
+              <p className="text-sm text-slate-500 italic">Loading history...</p>
+            ) : history.length === 0 ? (
+              <p className="text-sm text-slate-500 italic">No plans in history yet.</p>
+            ) : (
+              history.map((plan) => (
+                <button
+                  key={plan.id}
+                  onClick={() => loadPlanFromHistory(plan.id)}
+                  className="w-full text-left bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-indigo-500/50 hover:bg-slate-800/50 transition-colors"
+                >
+                  <p className="text-sm font-medium text-slate-200 mb-1 line-clamp-2">{plan.goal}</p>
+                  <p className="text-xs text-slate-500">{new Date(plan.createdAt).toLocaleString()}</p>
+                </button>
+              ))
             )}
           </div>
         )}
