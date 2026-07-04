@@ -9,10 +9,10 @@ interface Params {
 
 export async function GET(
   _req: Request,
-  { params }: { params: Params }
+  { params }: { params: Promise<Params> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     if (!id || typeof id !== "string") {
       return NextResponse.json(
@@ -52,10 +52,10 @@ export async function GET(
 
 export async function PATCH(
   req: Request,
-  { params }: { params: Params }
+  { params }: { params: Promise<Params> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     if (!id || typeof id !== "string") {
       return NextResponse.json(
@@ -95,10 +95,10 @@ export async function PATCH(
 
 export async function DELETE(
   _req: Request,
-  { params }: { params: Params }
+  { params }: { params: Promise<Params> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     if (!id || typeof id !== "string") {
       return NextResponse.json(
