@@ -2,6 +2,8 @@ import crypto from "node:crypto";
 import db from "@/lib/db";
 import { generatePlan } from "@/lib/executive-agent";
 
+const PLAN_STATUS_ACTIVE = "active";
+
 export type PlanRecord = {
   id: string;
   goal_id: string;
@@ -27,7 +29,7 @@ export class PlanService {
 
         db.prepare(
           "INSERT INTO plans (id, goal_id, markdown, status, created_at) VALUES (?, ?, ?, ?, ?)"
-        ).run(planId, goalId, markdown, "active", now);
+        ).run(planId, goalId, markdown, PLAN_STATUS_ACTIVE, now);
       })();
     } catch (e) {
       throw new Error(
