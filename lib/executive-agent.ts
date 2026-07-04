@@ -68,7 +68,13 @@ Rules:
     throw new Error("Executive Agent returned invalid JSON");
   }
 
-  if (!parsed.markdown || !parsed.goal || !parsed.why || !Array.isArray(parsed.tasks)) {
+  if (
+    !parsed.markdown.trim() ||
+    !parsed.goal.trim() ||
+    !parsed.why.trim() ||
+    !Array.isArray(parsed.tasks) ||
+    parsed.tasks.length === 0
+  ) {
     throw new Error("Executive Agent response missing required fields");
   }
 

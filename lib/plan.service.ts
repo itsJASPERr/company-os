@@ -18,16 +18,18 @@ export type PlanRecord = {
 
 type PlanRow = Omit<PlanRecord, "dag"> & { dag: string };
 
+function parseTasksFromJson(dagJson: string): TaskDto[] {
+  try {
+    return JSON.parse(dagJson) as TaskDto[];
+  } catch {
+    return [];
+  }
+}
+
 function rowToRecord(row: PlanRow): PlanRecord {
   return {
     ...row,
-    dag: (() => {
-      try {
-        return JSON.parse(row.dag) as TaskDto[];
-      } catch {
-        return [];
-      }
-    })(),
+    dag: parseTasksFromJson(row.dag),
   };
 }
 
