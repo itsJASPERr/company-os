@@ -13,6 +13,7 @@ type TabType = "plan" | "execution" | "debug";
 // -----------------------------------------------------------------------------
 export default function Home() {
   const [tab, setTab] = useState<TabType>("plan");
+  const [showHistory, setShowHistory] = useState(false);
   const [goalInput, setGoalInput] = useState("");
   const [data, setData] = useState<CreatePlanResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -97,37 +98,10 @@ export default function Home() {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500/30">
-
-      {/* History Sidebar */}
-      <aside className="w-64 shrink-0 border-r border-slate-800 flex flex-col">
-        <div className="px-4 py-5 border-b border-slate-800">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-400">History</h2>
-        </div>
-        <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
-          {historyLoading ? (
-            <p className="text-xs text-slate-500 italic px-2 py-1">Loading...</p>
-          ) : historyError ? (
-            <p className="text-xs text-red-400 px-2 py-1">{historyError}</p>
-          ) : history.length === 0 ? (
-            <p className="text-xs text-slate-500 italic px-2 py-1">No plans yet.</p>
-          ) : (
-            history.map((plan) => (
-              <button
-                key={plan.id}
-                onClick={() => loadPlanFromHistory(plan.id)}
-                className={`w-full text-left rounded-lg px-3 py-2.5 transition-colors hover:bg-slate-800 ${data?.id === plan.id ? "bg-slate-800 ring-1 ring-indigo-500/40" : ""}`}
-              >
-                <p className="text-xs font-medium text-slate-200 line-clamp-2 leading-snug">{plan.goal}</p>
-                <p className="text-[10px] text-slate-500 mt-1">{new Date(plan.createdAt).toLocaleString()}</p>
-              </button>
-            ))
-          )}
-        </div>
-      </aside>
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500/30">
 
       {/* Main Workspace */}
-      <main className="flex-1 min-w-0 p-6">
+      <main className="p-4 sm:p-6 max-w-4xl mx-auto">
         {/* Header */}
         <header className="mb-8">
           <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
@@ -175,27 +149,62 @@ export default function Home() {
           )}
         </section>
 
-        {/* Tabs */}
-        <nav className="flex gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 mb-4 max-w-xs">
-          {(["plan", "execution", "debug"] as TabType[]).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`flex-1 text-xs font-medium py-2 rounded-lg capitalize transition-all ${tab === t
-                ? "bg-slate-800 text-white shadow-sm"
-                : "text-slate-400 hover:text-slate-200"
-                }`}
-            >
-              {t}
-            </button>
-          ))}
-        </nav>
+        {/* Tabs + History Toggle */}
+        <div className="flex items-center gap-3 mb-4">
+          <nav className="flex gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800">
+            {(["plan", "execution", "debug"] as TabType[]).map((t) => (
+              <button
+                key={t}
+                onClick={() => { setTab(t); setShowHistory(false); }}
+                className={`text-xs font-medium py-2 px-3 rounded-lg capitalize transition-all ${!showHistory && tab === t
+                  ? "bg-slate-800 text-white shadow-sm"
+                  : "text-slate-400 hover:text-slate-200"
+                  }`}
+              >
+                {t}
+              </button>
+            ))}
+          </nav>
+          <button
+            onClick={() => setShowHistory((v) => !v)}
+            className={`text-xs font-medium py-2 px-3 rounded-xl border transition-all ${showHistory
+              ? "bg-slate-700 border-slate-600 text-white shadow-sm"
+              : "bg-slate-900 border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-600"
+              }`}
+          >
+            History
+          </button>
+        </div>
 
         {/* Content Container */}
         <section className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-6 min-h-[360px] backdrop-blur-sm">
 
+          {/* HISTORY */}
+          {showHistory && (
+            <div className="space-y-1.5">
+              {historyLoading ? (
+                <p className="text-xs text-slate-500 italic px-2 py-1">Loading...</p>
+              ) : historyError ? (
+                <p className="text-xs text-red-400 px-2 py-1">{historyError}</p>
+              ) : history.length === 0 ? (
+                <p className="text-xs text-slate-500 italic px-2 py-1">No plans yet.</p>
+              ) : (
+                history.map((plan) => (
+                  <button
+                    key={plan.id}
+                    onClick={() => { loadPlanFromHistory(plan.id); setShowHistory(false); }}
+                    className={`w-full text-left rounded-lg px-3 py-2.5 transition-colors hover:bg-slate-800 ${data?.id === plan.id ? "bg-slate-800 ring-1 ring-indigo-500/40" : ""}`}
+                  >
+                    <p className="text-xs font-medium text-slate-200 line-clamp-2 leading-snug">{plan.goal}</p>
+                    <p className="text-[10px] text-slate-500 mt-1">{new Date(plan.createdAt).toLocaleString()}</p>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+
           {/* TAB: PLAN */}
-          {tab === "plan" && (
+          {!showHistory && tab === "plan" && (
             // Ensure 'prose' and 'prose-invert' are present to trigger Tailwind Typography
             <article className="prose prose-invert max-w-none [&>h1]:text-3xl [&>h1]:font-bold [&>h2]:text-2xl [&>h2]:mt-6">
               {markdown ? (
@@ -209,7 +218,7 @@ export default function Home() {
           )}
 
           {/* TAB: EXECUTION */}
-          {tab === "execution" && (
+          {!showHistory && tab === "execution" && (
             <div className="space-y-3">
               {dag.length > 0 ? (
                 dag.map((task) => (
@@ -258,7 +267,7 @@ export default function Home() {
           )}
 
           {/* TAB: DEBUG */}
-          {tab === "debug" && (
+          {!showHistory && tab === "debug" && (
             <pre className="text-xs font-mono text-emerald-400 bg-slate-950 p-4 rounded-xl overflow-auto max-h-[450px] border border-slate-800/60 custom-scrollbar whitespace-pre-wrap break-words">
               {data ? JSON.stringify(data, null, 2) : "// No data available"}
             </pre>
