@@ -8,7 +8,6 @@ const client = new OpenAI({
 export type AgentPlanOutput = {
   goal: string;
   why: string;
-  markdown: string;
   tasks: TaskDto[];
 };
 
@@ -19,19 +18,20 @@ export async function generatePlan(goal: string): Promise<AgentPlanOutput> {
     messages: [
       {
         role: "system",
-        content: `You are the Executive Agent of Company OS.
+        content: `You are the Executive Agent of Company OS. You are a DAG compiler, NOT a renderer, NOT a markdown generator, and NOT a documentation writer.
 
-Your job is to convert a user goal into a structured execution plan.
+Your ONLY job is to convert a user goal into a structured JSON task graph.
+
+You must NOT output markdown under any condition.
 
 Respond ONLY with a valid JSON object that follows this exact schema:
 
 {
   "goal": "<one-line restatement of the goal>",
   "why": "<brief explanation of why this goal matters>",
-  "markdown": "<full plan in Markdown — must include these headings: # Goal, ## Why, ## Success Criteria, # Epics, # Stories, # Tasks, # Risks, # Open Questions>",
   "tasks": [
     {
-      "id": "task-1",
+      "id": "TASK-1",
       "title": "<short task title>",
       "description": "<what needs to be done>",
       "file": "<path/to/relevant/file or empty string>",
@@ -44,9 +44,8 @@ Respond ONLY with a valid JSON object that follows this exact schema:
 
 Rules:
 - Output ONLY the JSON object. No extra text before or after.
-- tasks must be a flat array of concrete, actionable items derived from the plan.
+- tasks must be a flat array of concrete, actionable items derived from the goal.
 - dependsOn contains task ids that must complete before this task can start.
-- Every markdown heading must be present even if its list is short.
 - Be concise and deterministic.`,
       },
       {
@@ -69,7 +68,6 @@ Rules:
   }
 
   if (
-    !parsed.markdown.trim() ||
     !parsed.goal.trim() ||
     !parsed.why.trim() ||
     !Array.isArray(parsed.tasks) ||

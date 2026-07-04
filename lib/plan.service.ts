@@ -10,7 +10,6 @@ export type PlanRecord = {
   goal_id: string;
   goal: string;
   why: string;
-  markdown: string;
   dag: TaskDto[];
   status: string;
   created_at: string;
@@ -53,7 +52,7 @@ export class PlanService {
           planId,
           goalId,
           output.why,
-          output.markdown,
+          "",
           JSON.stringify(output.tasks),
           PLAN_STATUS_ACTIVE,
           now
@@ -70,7 +69,6 @@ export class PlanService {
       goal_id: goalId,
       goal: output.goal,
       why: output.why,
-      markdown: output.markdown,
       dag: output.tasks,
       status: PLAN_STATUS_ACTIVE,
       created_at: now,
@@ -80,7 +78,7 @@ export class PlanService {
   listPlans(): PlanRecord[] {
     const rows = db
       .prepare(
-        `SELECT p.id, p.goal_id, g.title AS goal, p.why, p.markdown, p.dag, p.status, p.created_at
+        `SELECT p.id, p.goal_id, g.title AS goal, p.why, p.dag, p.status, p.created_at
          FROM plans p
          JOIN goals g ON g.id = p.goal_id
          ORDER BY p.created_at DESC`
@@ -92,7 +90,7 @@ export class PlanService {
   getPlan(id: string): PlanRecord | null {
     const row = db
       .prepare(
-        `SELECT p.id, p.goal_id, g.title AS goal, p.why, p.markdown, p.dag, p.status, p.created_at
+        `SELECT p.id, p.goal_id, g.title AS goal, p.why, p.dag, p.status, p.created_at
          FROM plans p
          JOIN goals g ON g.id = p.goal_id
          WHERE p.id = ?`

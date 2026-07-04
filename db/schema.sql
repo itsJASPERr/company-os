@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS plans (
     id TEXT PRIMARY KEY,
     goal_id TEXT NOT NULL REFERENCES goals(id) ON DELETE CASCADE,
     why TEXT NOT NULL DEFAULT '',
-    markdown TEXT NOT NULL,
+    markdown TEXT NOT NULL DEFAULT '',
     dag TEXT NOT NULL DEFAULT '[]',
     status TEXT NOT NULL DEFAULT 'active',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP

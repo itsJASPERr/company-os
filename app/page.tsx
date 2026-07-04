@@ -4,16 +4,46 @@ import { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+import { TaskDto } from "@/types/dto/task";
+
 type PlanEntry = {
   id: string;
   goal_id: string;
   goal: string;
   why: string;
-  markdown: string;
-  dag: unknown[];
+  dag: TaskDto[];
   status: string;
   created_at: string;
 };
+
+function tasksToMarkdown(plan: PlanEntry): string {
+  const lines: string[] = [
+    `# Goal`,
+    ``,
+    plan.goal,
+    ``,
+    `## Why`,
+    ``,
+    plan.why,
+    ``,
+    `## Tasks`,
+    ``,
+  ];
+  for (const task of plan.dag) {
+    lines.push(`### ${task.id}: ${task.title}`);
+    lines.push(``);
+    if (task.description) {
+      lines.push(task.description);
+      lines.push(``);
+    }
+    lines.push(`- **Priority:** ${task.priority}`);
+    lines.push(`- **Status:** ${task.status}`);
+    if (task.file) lines.push(`- **File:** \`${task.file}\``);
+    if (task.dependsOn.length) lines.push(`- **Depends on:** ${task.dependsOn.join(", ")}`);
+    lines.push(``);
+  }
+  return lines.join("\n");
+}
 
 // -----------------------------------------------------------------------------
 // Main Component
@@ -216,7 +246,7 @@ export default function Home() {
             <article className="prose prose-invert max-w-none [&>h1]:text-3xl [&>h1]:font-bold [&>h2]:text-2xl [&>h2]:mt-6">
               {currentPlan ? (
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {currentPlan.markdown}
+                  {tasksToMarkdown(currentPlan)}
                 </ReactMarkdown>
               ) : (
                 <p className="text-sm text-slate-500 italic">
