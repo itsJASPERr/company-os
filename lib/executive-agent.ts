@@ -170,14 +170,23 @@ If uncertain:
     const task = parsed.tasks[i] as Record<string, unknown>;
     const idx = `tasks[${i}]`;
 
+    // Verify every required field is present and non-null
     for (const field of ["id", "title", "description", "file", "priority", "status", "dependsOn"] as const) {
       if (!(field in task) || task[field] === undefined || task[field] === null) {
         throw new Error(`Executive Agent task ${idx} missing required field: ${field}`);
       }
     }
 
+    // dependsOn requires an array specifically (string check above would pass non-arrays)
     if (!Array.isArray(task.dependsOn)) {
       throw new Error(`Executive Agent task ${idx} field 'dependsOn' must be an array`);
+    }
+
+    // String fields must be non-empty
+    for (const field of ["id", "title", "description", "file"] as const) {
+      if (typeof task[field] !== "string" || !(task[field] as string).trim()) {
+        throw new Error(`Executive Agent task ${idx} field '${field}' must be a non-empty string`);
+      }
     }
 
     const id = task.id as string;
