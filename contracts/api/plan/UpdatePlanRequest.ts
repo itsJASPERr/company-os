@@ -1,4 +1,4 @@
-import { TaskDto } from "./TaskDTO";
+import { TaskDto } from "../../dto/TaskDTO";
 
 export type UpdatePlanRequest = {
     goal?: string;
