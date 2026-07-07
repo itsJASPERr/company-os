@@ -1,8 +1,8 @@
 import crypto from "node:crypto";
 import db from "@/lib/db";
 import { generatePlan } from "@/lib/executive-agent";
-import { TaskDto } from "@/types/dto/task";
-import { Plan } from "@/types/domain/plan";
+import { TaskDto } from "@/contracts/dto/TaskDTO";
+import { Plan } from "@/domain/plan/Plan";
 import { PlanService } from "./PlanService";
 
 const PLAN_STATUS_ACTIVE = "active";

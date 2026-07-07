@@ -1,5 +1,5 @@
-import { Plan } from '@/types/domain/plan';
-import { PlanDto } from '@/types/dto/plan';
+import { Plan } from '@/domain/plan/Plan';
+import { PlanDto } from '@/contracts/dto/PlanDTO';
 
 export function toDto(plan: Plan): PlanDto {
   return {

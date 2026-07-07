@@ -1,7 +1,7 @@
-import { Task } from "@/types/domain/task";
+import { TaskDto } from "@/contracts/dto/TaskDTO";
 
 interface ExecutionCardProps {
-  task: Task;
+  task: TaskDto;
 }
 
 export default function ExecutionCard({ task }: ExecutionCardProps) {

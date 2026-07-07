@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-import { TaskDto } from "@/types/dto/task";
-import { PlanDto } from "@/types/dto/plan";
+import { PlanDto } from "@/contracts/dto/PlanDTO";
 import TabBar, { TabType } from "@/components/TabBar";
 import ExecutionList from "@/components/ExecutionList";
 

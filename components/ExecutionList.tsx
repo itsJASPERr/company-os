@@ -1,8 +1,8 @@
-import { Task } from "@/types/domain/task";
+import { TaskDto } from "@/contracts/dto/TaskDTO";
 import ExecutionCard from "./ExecutionCard";
 
 export interface ExecutionListProps {
-  dag: Task[];
+  dag: TaskDto[];
 }
 
 export default function ExecutionList({ dag }: ExecutionListProps) {

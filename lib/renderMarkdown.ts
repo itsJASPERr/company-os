@@ -1,4 +1,4 @@
-import { Plan } from "@/types/domain/plan";
+import { Plan } from "@/domain/plan/Plan";
 
 type MarkdownPlan = Pick<Plan, "goal" | "why" | "dag">;
 

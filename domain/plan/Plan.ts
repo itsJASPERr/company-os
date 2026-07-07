@@ -1,5 +1,5 @@
 // types/domain/plan.ts
-import { Task } from "./task";
+import { Task } from "./Task";
 
 export interface Plan {
     id: string;

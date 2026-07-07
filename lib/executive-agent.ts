@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { TaskDto } from "@/types/dto/task";
+import { TaskDto } from "@/contracts/dto/TaskDTO";
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
