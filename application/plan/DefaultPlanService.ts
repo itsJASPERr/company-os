@@ -3,7 +3,7 @@ import db from "@/lib/db";
 import { generatePlan } from "@/lib/executive-agent";
 import { TaskDto } from "@/types/dto/task";
 import { Plan } from "@/types/domain/plan";
-import { IPlanService } from "./plan.service.interface";
+import { PlanService } from "./PlanService";
 
 const PLAN_STATUS_ACTIVE = "active";
 
@@ -46,7 +46,7 @@ function recordToDomain(record: PlanRecord): Plan {
   };
 }
 
-export class PlanService implements IPlanService {
+export class DefaultPlanService implements PlanService {
   async generateAndSave(goal: string): Promise<Plan> {
     const output = await generatePlan(goal);
 
@@ -112,4 +112,4 @@ export class PlanService implements IPlanService {
   }
 }
 
-export const planService: IPlanService = new PlanService();
+export const planService: PlanService = new DefaultPlanService();

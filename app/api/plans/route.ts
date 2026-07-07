@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { planService } from "@/lib/plan.service";
+import { planService } from "@/application/plan/DefaultPlanService";
 import { ListPlansResponse } from "@/types/dto/list-plans.response";
-import { toDto } from "@/lib/api/plan.mapper"
+import { toDto } from "@/application/plan/PlanMapper";
 
 type ResponseBody = ListPlansResponse | { error: string };
 

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { planService } from "@/lib/plan.service";
+import { planService } from "@/application/plan/DefaultPlanService";
 import { PlanDto } from "@/types/dto";
-import { toDto } from "@/lib/api/plan.mapper";
+import { toDto } from "@/application/plan/PlanMapper";
 
 type ResponseBody = { plan: PlanDto } | { error: string };
 
